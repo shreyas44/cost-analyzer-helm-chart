@@ -56,7 +56,7 @@ spec:
           - tcp6-listen:3001,fork,reuseaddr
           - tcp-connect:127.0.0.1:3001
         ports:
-        - name: http-ipv6
+        - name: http-server
           containerPort: 3001
           hostPort: 3001
           protocol: TCP
@@ -140,12 +140,12 @@ spec:
         {{- if .Values.networkCosts.additionalSecurityContext }}
         {{- toYaml .Values.networkCosts.additionalSecurityContext | nindent 10 }}
         {{- end }}
+        {{- if not .Values.networkCosts.ipv6 }}
         ports:
         - name: http-server
           containerPort: {{ .Values.networkCosts.port | default 3001 }}
-          {{- if not .Values.networkCosts.ipv6 }}
           hostPort: {{ .Values.networkCosts.port | default 3001 }}
-          {{- end }}
+        {{- end }}
 {{- if .Values.networkCosts.priorityClassName }}
       priorityClassName: "{{ .Values.networkCosts.priorityClassName }}"
 {{- end }}
