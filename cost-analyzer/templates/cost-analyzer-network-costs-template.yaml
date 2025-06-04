@@ -49,6 +49,25 @@ spec:
       hostNetwork: true
       serviceAccountName: {{ template "cost-analyzer.serviceAccountName" . }}
       containers:
+      {{- if .Values.networkCosts.ipv6 }}
+      - name: socat-ipv6-proxy
+        image: alpine/socat:1.8.0.0
+        args:
+          - tcp6-listen:3001,fork,reuseaddr
+          - tcp-connect:127.0.0.1:3001
+        ports:
+        - name: http-ipv6
+          containerPort: 3001
+          hostPort: 3001
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 10Mi
+          limits:
+            cpu: 100m
+            memory: 50Mi
+      {{- end }}
       - name: {{ template "cost-analyzer.networkCostsName" . }}
         {{- if eq (typeOf .Values.networkCosts.image) "string" }}
         image: {{ .Values.networkCosts.image }}
@@ -124,7 +143,9 @@ spec:
         ports:
         - name: http-server
           containerPort: {{ .Values.networkCosts.port | default 3001 }}
+          {{- if not .Values.networkCosts.ipv6 }}
           hostPort: {{ .Values.networkCosts.port | default 3001 }}
+          {{- end }}
 {{- if .Values.networkCosts.priorityClassName }}
       priorityClassName: "{{ .Values.networkCosts.priorityClassName }}"
 {{- end }}
