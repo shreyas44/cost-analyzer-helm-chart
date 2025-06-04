@@ -54,7 +54,7 @@ spec:
         image: alpine/socat:1.8.0.0
         args:
           - tcp6-listen:3001,fork,reuseaddr
-          - tcp-connect:127.0.0.1:3001
+          - tcp-connect:127.0.0.1:3002
         ports:
         - name: http-server
           containerPort: 3001
@@ -96,7 +96,11 @@ spec:
             fieldRef:
               fieldPath: spec.nodeName
         - name: HOST_PORT
+          {{- if .Values.networkCosts.ipv6 }}
+          value: {{ (quote .Values.networkCosts.port) | default (quote 3002) }}
+          {{- else }}
           value: {{ (quote .Values.networkCosts.port) | default (quote 3001) }}
+          {{- end }}
         - name: TRAFFIC_LOGGING_ENABLED
           value: {{ (quote .Values.networkCosts.trafficLogging) | default (quote true) }}
         - name: LOG_LEVEL
